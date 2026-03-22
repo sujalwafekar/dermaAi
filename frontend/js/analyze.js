@@ -15,40 +15,6 @@
 
     let currentResult = null;
 
-    // Clinical mappings based on risk
-    const CLINICAL_MAP = {
-        Low: {
-            predText: 'Benign Pattern',
-            labelClass: 'Melanocytic/Benign',
-            theme: 'low',
-            recs: [
-                { title: 'Monitor for Changes', desc: 'Observe the area for any asymmetry, border irregularity, or color changes (ABCDE criteria) over the next 3 months.' },
-                { title: 'Annual Professional Screening', desc: 'Despite low risk indicators, a routine full-body skin exam by a board-certified dermatologist is recommended annually.' },
-                { title: 'UV Protection', desc: 'Continue using broad-spectrum SPF 30+ daily to prevent further photo-damage to the identified region.' }
-            ]
-        },
-        Medium: {
-            predText: 'Atypical Lesion',
-            labelClass: 'Dysplastic Nevus / Atypical',
-            theme: 'medium',
-            recs: [
-                { title: 'Dermatologist Consultation', desc: 'Schedule an evaluation with a certified dermatologist within 2-4 weeks to review these atypical features.' },
-                { title: 'Photographic Monitoring', desc: 'Take a clear, well-lit photograph every 2 weeks to objectively track any rapid changes in size, shape, or color.' },
-                { title: 'Sun Avoidance', desc: 'Strictly protect the lesion from UV exposure using clothing or high SPF sunscreen to prevent exacerbation.' }
-            ]
-        },
-        High: {
-            predText: 'Malignant Suspicion',
-            labelClass: 'Melanoma / Carcinoma Suspected',
-            theme: 'high',
-            recs: [
-                { title: 'URGENT: Clinical Evaluation', desc: 'Prioritize a consultation with a dermatologist immediately. A biopsy may be required to confirm the diagnosis.' },
-                { title: 'Do Not Irritate', desc: 'Avoid scratching, picking, or applying harsh topical treatments to the lesion prior to your clinical visit.' },
-                { title: 'Documentation', desc: 'Bring this report to your appointment to provide the clinician with the AI-assisted Grad-CAM activation mapping.' }
-            ]
-        }
-    };
-
     function showError(msg) {
         errorBox.classList.remove('hidden');
         errorMsg.textContent = msg;
@@ -66,7 +32,9 @@
     function renderResults(data) {
         const tStart = performance.now();
 
-        const mapData = CLINICAL_MAP[data.risk_level] || CLINICAL_MAP.Low;
+        let theme = 'low';
+        if (data.risk_level === 'Medium') theme = 'medium';
+        if (data.risk_level === 'High') theme = 'high';
 
         // Header
         document.getElementById('report-id').textContent = `Report #${generateReportId()}`;
@@ -78,28 +46,21 @@
 
         // Prediction Card
         const predCard = document.getElementById('prediction-card');
-        predCard.className = `card prediction-card ${mapData.theme}`;
+        predCard.className = `card prediction-card ${theme}`;
 
         document.getElementById('risk-badge').textContent = `${data.risk_level} Risk`.toUpperCase();
-        document.getElementById('pred-class-main').textContent = mapData.predText;
+        document.getElementById('pred-class-main').textContent = data.prediction;
 
         const confNum = (data.confidence * 100).toFixed(1);
         document.getElementById('conf-pct').textContent = `${confNum}%`;
 
         // Details
-        document.getElementById('detail-class').textContent = mapData.labelClass;
+        document.getElementById('detail-class').textContent = data.prediction;
+        document.getElementById('detail-urgency').textContent = data.urgency;
 
         // Recommendations
-        const recList = document.getElementById('rec-list');
-        recList.innerHTML = mapData.recs.map((rec, i) => `
-    <div class="rec-item">
-      <div class="rec-num">${i + 1}</div>
-      <div class="rec-text">
-        <h4>${rec.title}</h4>
-        <p>${rec.desc}</p>
-      </div>
-    </div>
-  `).join('');
+        document.getElementById('diag-message').textContent = data.message;
+        document.getElementById('diag-advice').textContent = data.advice;
 
         // Reveal
         uploadSection.classList.add('hidden');

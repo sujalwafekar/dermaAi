@@ -249,11 +249,24 @@
                         </div>
                     </div>
 
-                    <!-- Clinical Recommendations -->
+                    <!-- Clinical Assessment -->
                     <div class="card recommendations-card" id="recs-card">
-                        <h2>Clinical Recommendations</h2>
+                        <h2>Clinical Assessment</h2>
                         <div class="rec-list" id="rec-list">
-                            <!-- Injected by JS -->
+                            <div class="rec-item">
+                                <div class="rec-num">1</div>
+                                <div class="rec-text">
+                                    <h4>Diagnostic Observation</h4>
+                                    <p id="diag-message">Loading message...</p>
+                                </div>
+                            </div>
+                            <div class="rec-item">
+                                <div class="rec-num">2</div>
+                                <div class="rec-text">
+                                    <h4>Recommended Action</h4>
+                                    <p id="diag-advice">Loading advice...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -287,16 +300,16 @@
                     <div class="card details-card">
                         <h2>Analysis Details</h2>
                         <div class="detail-row">
-                            <span class="detail-label">Label Class</span>
-                            <span class="detail-value" id="detail-class">Melanocytic</span>
+                            <span class="detail-label">Suspected Condition</span>
+                            <span class="detail-value" id="detail-class">Loading...</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Urgency Level</span>
+                            <span class="detail-value" id="detail-urgency">Loading...</span>
                         </div>
                         <div class="detail-row">
                             <span class="detail-label">Processing Time</span>
                             <span class="detail-value" id="detail-time">1.2s</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="detail-label">Model Version</span>
-                            <span class="detail-value">v4.2-Clinical</span>
                         </div>
                     </div>
 
