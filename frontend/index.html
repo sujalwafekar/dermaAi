@@ -12,7 +12,6 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="css/index.css" />
-  <script type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js"></script>
 </head>
 
 <body>
@@ -266,6 +265,38 @@
       });
     }, { threshold: 0.15 });
     cards.forEach(c => obs.observe(c));
+
+    // Spline Skill Integration - Performance & Dynamic Loading
+    function shouldLoadSpline() {
+      const isMobile = window.innerWidth < 768;
+      const isLowEnd = navigator.hardwareConcurrency <= 2;
+
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+
+      return !isMobile && !isLowEnd && !!gl;
+    }
+
+    if (shouldLoadSpline()) {
+      // 1. Load the script dynamically to avoid blocking rendering
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://unpkg.com/@splinetool/viewer/build/spline-viewer.js';
+      document.head.appendChild(script);
+
+      // 2. Timeout Fallback (Hide if 8 seconds pass without shadowRoot mounting)
+      setTimeout(() => {
+        const viewer = document.querySelector('spline-viewer');
+        if (!viewer || !viewer.shadowRoot) {
+          document.querySelector('.hero-spline').style.display = 'none';
+          console.warn('Spline failed to load in time, showing fallback.');
+        }
+      }, 8000);
+    } else {
+      // Hide completely on low end / mobile to save battery & stop lag
+      document.querySelector('.hero-spline').style.display = 'none';
+      console.log('Skipped loading Spline for performance optimization (Mobile/Low-End).');
+    }
   </script>
 </body>
 
