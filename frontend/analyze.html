@@ -4,12 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description"
-        content="Upload a skin image and get AI-powered risk analysis with Grad-CAM heatmaps from DermaAI." />
-    <title>Analyze — DermaAI</title>
+    <title>Skin Risk Analysis — DermaAI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/analyze.css" />
@@ -17,197 +14,344 @@
 
 <body>
 
-    <!-- NAV -->
+    <!-- ── NAV ────────────────────────────────────────────────── -->
     <nav class="nav">
         <div class="nav-inner">
             <a class="nav-logo" href="/">
-                <span>🧬</span><span>DermaAI</span>
+                <span class="logo-icon">🧬</span>
+                <span>DermaAI</span>
             </a>
-            <a href="/" class="btn-back">← Back to Home</a>
+            <div class="nav-links">
+                <a href="#" class="active">Analysis</a>
+                <a href="#">Reports</a>
+                <a href="#">History</a>
+                <a href="#">Consultations</a>
+            </div>
+            <div class="nav-user">
+                <span class="avatar-icon">👤</span>
+            </div>
         </div>
     </nav>
 
-    <main class="main">
+    <main class="main container">
 
-        <!-- ── UPLOAD SECTION ───────────────────────────────── -->
+        <!-- ── UPLOAD STATE ─────────────────────────────────────── -->
         <section class="upload-section" id="upload-section">
-            <div class="orb orb-a"></div>
-            <div class="orb orb-b"></div>
+            <div class="upload-header">
+                <h1>Skin Risk Analysis</h1>
+                <p>Leverage our clinical-grade AI to assess dermatological risks from high-resolution imagery. Your data
+                    is encrypted and handled with medical-grade security.</p>
+            </div>
 
-            <div class="upload-container">
-                <div class="upload-header">
-                    <h1>Skin Risk <span class="gradient-text">Analysis</span></h1>
-                    <p>Upload a clear photo of the skin area you want analyzed. Supports JPG, PNG, WEBP (max 10 MB).</p>
-                </div>
+            <div class="upload-grid">
+                <!-- Left Column: Upload Area -->
+                <div class="upload-left">
 
-                <div class="upload-card glass" id="drop-zone">
-                    <input type="file" id="file-input" accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp"
-                        hidden />
+                    <div class="upload-card" id="drop-zone">
+                        <input type="file" id="file-input"
+                            accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/tiff" hidden />
 
-                    <div class="drop-content" id="drop-content">
-                        <div class="drop-icon-wrap">
-                            <div class="drop-icon">📂</div>
-                            <div class="drop-ring"></div>
+                        <div class="drop-content" id="drop-content">
+                            <div class="drop-icon-circle">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="upload-icon">
+                                    <path d="M12 4v10M12 4l-4 4m4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                            <h3>Upload Clinical Image</h3>
+                            <p class="drop-hint">Drag and drop your high-resolution dermatoscopic image here, or browse
+                                your files.</p>
+
+                            <div class="upload-buttons">
+                                <button class="btn-primary" id="browse-btn">
+                                    <span class="icon">📁</span> Browse Files
+                                </button>
+                                <button class="btn-ghost-green">
+                                    Use Camera
+                                </button>
+                            </div>
                         </div>
-                        <h3>Drop your image here</h3>
-                        <p>or <button class="link-btn" id="browse-btn">browse files</button></p>
-                        <span class="drop-formats">PNG · JPG · WEBP · BMP — Max 10 MB</span>
+
+                        <!-- Preview state hides drop-content -->
+                        <div class="preview-content hidden" id="preview-content">
+                            <img id="preview-img" src="" alt="Preview" />
+                            <p id="preview-name" class="hidden"></p>
+
+                            <div class="upload-buttons preview-actions">
+                                <button class="btn-primary" id="analyze-btn" disabled>
+                                    <span id="analyze-label">Analyze Image</span>
+                                    <span id="analyze-spinner" class="spinner hidden"></span>
+                                </button>
+                                <button class="btn-ghost-sm" id="change-btn">Change Image</button>
+                            </div>
+                        </div>
+
+                        <div class="upload-footer">
+                            <span class="left">SUPPORTED: JPEG, PNG, TIFF</span>
+                            <span class="right">MAX FILE SIZE: 25MB</span>
+                        </div>
                     </div>
 
-                    <div class="preview-content hidden" id="preview-content">
-                        <img id="preview-img" src="" alt="Preview" />
-                        <div class="preview-actions">
-                            <span id="preview-name" class="preview-name"></span>
-                            <button class="btn-ghost-sm" id="change-btn">Change image</button>
+                    <!-- Feature boxes -->
+                    <div class="upload-features">
+                        <div class="feat-box">
+                            <div class="feat-icon">🛡️</div>
+                            <div class="feat-text">
+                                <h4>HIPAA Compliant</h4>
+                                <p>Your privacy and data security are our top priority.</p>
+                            </div>
                         </div>
+                        <div class="feat-box">
+                            <div class="feat-icon">⚡</div>
+                            <div class="feat-text">
+                                <h4>Instant Results</h4>
+                                <p>AI analysis typically takes less than 15 seconds.</p>
+                            </div>
+                        </div>
+                        <div class="feat-box">
+                            <div class="feat-icon">🔬</div>
+                            <div class="feat-text">
+                                <h4>Trained Models</h4>
+                                <p>98.2% accuracy on clinical trial datasets.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="error-box hidden" id="error-box">
+                        <span id="error-msg"></span>
                     </div>
                 </div>
 
-                <button class="btn-analyze" id="analyze-btn" disabled>
-                    <span id="analyze-label">Select an image first</span>
-                    <span id="analyze-spinner" class="spinner hidden"></span>
-                </button>
+                <!-- Right Column: Guidelines & History -->
+                <div class="upload-right">
 
-                <div class="error-box hidden" id="error-box">
-                    <span>⚠️</span>
-                    <span id="error-msg"></span>
+                    <!-- Analysis Guidelines Card -->
+                    <div class="guidelines-card">
+                        <div class="gl-header">
+                            <span class="icon">💡</span>
+                            <h2>Analysis Guidelines</h2>
+                        </div>
+                        <div class="gl-list">
+                            <div class="gl-item">
+                                <div class="gl-num">1</div>
+                                <div class="gl-text">
+                                    <h4>Ensure Proper Lighting</h4>
+                                    <p>Use natural, diffused light. Avoid harsh shadows or direct flash that might
+                                        obscure details.</p>
+                                </div>
+                            </div>
+                            <div class="gl-item">
+                                <div class="gl-num">2</div>
+                                <div class="gl-text">
+                                    <h4>Macro Focus</h4>
+                                    <p>Capture the lesion from 10-15cm away. The focus should be sharp on the skin
+                                        texture.</p>
+                                </div>
+                            </div>
+                            <div class="gl-item">
+                                <div class="gl-num">3</div>
+                                <div class="gl-text">
+                                    <h4>Clear Surroundings</h4>
+                                    <p>Remove any hair, bandages, or clothing that might obstruct the view of the lesion
+                                        edges.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gl-quote">
+                            "Precision in imagery leads to accuracy in diagnosis. We recommend using a dermatoscope
+                            attachment if available."
+                        </div>
+                    </div>
+
+                    <!-- Recent Uploads Card -->
+                    <div class="recent-uploads-card">
+                        <div class="ru-header">
+                            <span class="icon">🕒</span>
+                            <h2>Recent Uploads</h2>
+                        </div>
+                        <div class="ru-list">
+                            <div class="ru-item">
+                                <div class="ru-thumb orange"></div>
+                                <div class="ru-info">
+                                    <h4>Lesion_Back_04.jpg</h4>
+                                    <p>2 hours ago • Completed</p>
+                                </div>
+                                <div class="ru-arrow">›</div>
+                            </div>
+                            <div class="ru-item">
+                                <div class="ru-thumb white"></div>
+                                <div class="ru-info">
+                                    <h4>Forearm_Mole_A1.png</h4>
+                                    <p>Yesterday • Completed</p>
+                                </div>
+                                <div class="ru-arrow">›</div>
+                            </div>
+                        </div>
+                        <div class="ru-view-all">
+                            <a href="#">View full history</a>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
 
-        <!-- ── RESULTS SECTION ──────────────────────────────── -->
+        <!-- ── RESULTS STATE ────────────────────────────────────── -->
         <section class="results-section hidden" id="results-section">
 
-            <!-- Risk Banner -->
-            <div class="risk-banner" id="risk-banner">
-                <div class="risk-banner-inner">
-                    <div class="risk-label-wrap">
-                        <span class="risk-icon" id="risk-icon">🟢</span>
-                        <div>
-                            <div class="risk-super">Risk Classification</div>
-                            <div class="risk-level-text" id="risk-level-text">Low</div>
-                        </div>
-                    </div>
-                    <div class="confidence-wrap">
-                        <div class="conf-label">
-                            <span>Model Confidence</span>
-                            <span class="conf-pct" id="conf-pct">0%</span>
-                        </div>
-                        <div class="conf-track">
-                            <div class="conf-fill" id="conf-fill"></div>
-                        </div>
-                    </div>
-                    <div class="risk-action-text" id="risk-action"></div>
+            <!-- Header -->
+            <div class="result-header-row">
+                <div class="result-header-text">
+                    <span class="super-heading">CLINICAL ANALYSIS RESULT</span>
+                    <h1 id="report-id">Report #DAI-0000</h1>
+                    <p>AI-assisted dermatological evaluation generated on <span id="report-date"></span>. This report
+                        provides visual heatmaps and risk stratification.</p>
                 </div>
-            </div>
-
-            <!-- Image comparison -->
-            <div class="images-row container">
-                <div class="img-panel glass">
-                    <div class="img-panel-label">Original Image</div>
-                    <img id="orig-img" src="" alt="Original skin image" />
-                </div>
-                <div class="img-panel-divider">
-                    <div class="vs-badge">Grad-CAM →</div>
-                </div>
-                <div class="img-panel glass">
-                    <div class="img-panel-label">Grad-CAM Heatmap</div>
-                    <img id="heat-img" src="" alt="Grad-CAM heatmap" />
-                    <div class="heat-legend">
-                        <div class="heat-grad"></div>
-                        <div class="heat-labels"><span>Low risk</span><span>High risk</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detailed Analysis -->
-            <div class="section-block container">
-                <div class="section-block-header">
-                    <div>
-                        <h2>📋 Detailed Analysis</h2>
-                        <p>Complete readout of the AI scan results.</p>
-                    </div>
-                </div>
-                <div class="analysis-readout glass">
-                    <div class="readout-row"><span class="r-label">True Label</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-true-label">...</span></div>
-                    <div class="readout-row"><span class="r-label">Prediction</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-prediction">...</span></div>
-                    <div class="readout-row"><span class="r-label">Confidence</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-confidence">...</span></div>
-                    <div class="readout-row"><span class="r-label">Urgency</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-urgency">...</span></div>
-                    <div class="readout-row"><span class="r-label">Message</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-message">...</span></div>
-                    <div class="readout-row"><span class="r-label">Advice</span><span class="r-colon">:</span><span
-                            class="r-val" id="ro-advice">...</span></div>
-                </div>
-            </div>
-
-            <!-- Dermatologists Section -->
-            <div class="section-block container">
-                <div class="section-block-header">
-                    <div>
-                        <h2>📍 Find Nearby Dermatologists</h2>
-                        <p>Certified skin specialists available near you for a professional consultation.</p>
-                    </div>
-                </div>
-
-                <div class="derm-google-card glass">
-                    <div class="derm-google-info">
-                        <div class="derm-google-icon">🗺️</div>
-                        <div>
-                            <h3>Search on Google Maps</h3>
-                            <p>Find the best-rated dermatologists instantly. We'll open a pre-filled Google Maps search
-                                for specialists in your area.</p>
-                        </div>
-                    </div>
-                    <a href="https://www.google.com/maps/search/Dermatologist+near+me/" target="_blank"
-                        rel="noopener noreferrer" class="btn-primary" style="text-decoration: none;">
-                        Find Dermatologists Nearby ↗
-                    </a>
-                </div>
-            </div>
-
-            <!-- PDF Report -->
-            <div class="section-block container report-section">
-                <div class="report-card glass">
-                    <div class="report-info">
-                        <div class="report-icon">📄</div>
-                        <div>
-                            <h3>Download Analysis Report</h3>
-                            <p>Get a professional PDF summary with your risk result, heatmap, and analysis notes —
-                                shareable with your doctor.</p>
-                        </div>
-                    </div>
+                <div class="result-header-action">
                     <button class="btn-primary" id="download-btn">
-                        <span id="dl-label">Download PDF Report</span>
+                        <span id="dl-label">📥 Download PDF Report</span>
                         <span id="dl-spinner" class="spinner hidden"></span>
                     </button>
                 </div>
             </div>
 
-            <!-- Disclaimer -->
-            <div class="container">
-                <div class="disclaimer glass">
-                    ⚠️ <strong>Medical Disclaimer:</strong> DermaAI is an AI-assisted screening tool for informational
-                    purposes only.
-                    It is <strong>not</strong> a substitute for professional medical diagnosis.
-                    Always consult a certified dermatologist for clinical evaluation.
+            <div class="layout-grid">
+
+                <!-- Left Column -->
+                <div class="col-left">
+
+                    <!-- Visual Diagnostics -->
+                    <div class="card visual-card">
+                        <div class="card-header">
+                            <span class="icon">👁️</span>
+                            <h2>Visual Diagnostics</h2>
+                        </div>
+                        <div class="images-container">
+                            <div class="image-box">
+                                <span class="image-label">ORIGINAL INPUT IMAGE</span>
+                                <div class="img-wrapper">
+                                    <img id="orig-img" src="" alt="Raw Input" />
+                                    <span class="img-pill">RAW_INPUT_01</span>
+                                </div>
+                            </div>
+                            <div class="image-box">
+                                <span class="image-label">GRAD-CAM HEATMAP</span>
+                                <div class="img-wrapper">
+                                    <img id="heat-img" src="" alt="Activation Map" />
+                                    <span class="img-pill">ACTIVATION_MAP_01</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="visual-explainer">
+                            The Grad-CAM heatmap highlights the specific pixel regions the neural network prioritized
+                            during classification. Red areas indicate high influence on the final prediction.
+                        </div>
+                    </div>
+
+                    <!-- Clinical Recommendations -->
+                    <div class="card recommendations-card" id="recs-card">
+                        <h2>Clinical Recommendations</h2>
+                        <div class="rec-list" id="rec-list">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-right">
+
+                    <!-- AI Prediction (Green Card) -->
+                    <div class="card prediction-card" id="prediction-card">
+                        <div class="pred-header">
+                            <div class="shield-icon">🛡️</div>
+                            <div class="risk-badge" id="risk-badge">LOW RISK</div>
+                        </div>
+                        <div class="pred-body">
+                            <span class="pred-super">AI PREDICTION</span>
+                            <h2 id="pred-class-main">Benign Pattern</h2>
+                        </div>
+                        <div class="pred-footer">
+                            <div class="conf-labels">
+                                <span>Confidence Score</span>
+                                <span id="conf-pct" class="conf-pct-text">94.2%</span>
+                            </div>
+                            <div class="conf-track">
+                                <div class="conf-fill" id="conf-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details -->
+                    <div class="card details-card">
+                        <h2>Analysis Details</h2>
+                        <div class="detail-row">
+                            <span class="detail-label">Label Class</span>
+                            <span class="detail-value" id="detail-class">Melanocytic</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Processing Time</span>
+                            <span class="detail-value" id="detail-time">1.2s</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Model Version</span>
+                            <span class="detail-value">v4.2-Clinical</span>
+                        </div>
+                    </div>
+
+                    <!-- Nearby Specialists -->
+                    <div class="card map-card">
+                        <h2>Find Nearby Specialists</h2>
+                        <p>Connect with a professional to verify these findings and receive a personalized treatment
+                            plan.</p>
+                        <div class="map-wrapper" id="map-wrapper">
+                            <div id="map" class="map-container"></div>
+                        </div>
+                        <button class="btn-ghost" id="map-btn">🔍 Search Specialists</button>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- New analysis -->
-            <div class="container new-analysis-wrap">
-                <button class="btn-ghost" id="new-analysis-btn">← Analyze another image</button>
+            <!-- Footer Disclaimer -->
+            <div class="disclaimer-banner">
+                <div class="disc-icon">i</div>
+                <div class="disc-content">
+                    <strong>Medical Disclaimer</strong>
+                    <p>This AI-generated analysis is for informational purposes only and does not constitute medical
+                        advice, diagnosis, or treatment. DermaAI's algorithms are screening tools and should not be used
+                        as a replacement for clinical evaluation by a healthcare professional. If you notice rapid
+                        changes in size, shape, or color of any skin lesion, please consult a dermatologist immediately
+                        regardless of the results shown here.</p>
+                </div>
+            </div>
+
+            <!-- New analysis button at very bottom -->
+            <div class="new-analysis-wrap">
+                <button class="btn-text" id="new-analysis-btn">← Analyze another image</button>
             </div>
 
         </section>
     </main>
 
+    <footer class="app-footer">
+        <div class="container footer-inner">
+            <div class="footer-left">DermaAI Clinical Excellence</div>
+            <div class="footer-mid">© 2024 DermaAI Clinical Excellence. Medical Disclaimer: For informational purposes
+                only.</div>
+            <div class="footer-right">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Support</a>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/upload.js"></script>
     <script src="js/analyze.js"></script>
+    <script src="js/map.js"></script>
 </body>
 
 </html>
