@@ -3,7 +3,7 @@
  */
 (() => {
 
-    const API_BASE = 'http://127.0.0.1:5000';
+    const API_BASE = 'https://chess-ppm-assessing-judy.trycloudflare.com';
 
     const uploadSection = document.getElementById('upload-section');
     const resultsSection = document.getElementById('results-section');
@@ -167,9 +167,6 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // Map scroll
-    document.getElementById('map-btn').addEventListener('click', () => {
-        document.getElementById('map-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
+
 
 })();

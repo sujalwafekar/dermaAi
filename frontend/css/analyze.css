@@ -988,3 +988,120 @@ body {
 .footer-right a:hover {
     color: var(--text-main);
 }
+
+/* ── DERMATOLOGIST LIST & ACTIONS ──────────────────────── */
+.derm-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-top: 16px;
+}
+
+.derm-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+.derm-list-container::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.derm-loading {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    background: #f8fafc;
+    border-radius: var(--radius);
+    border: 1px dashed var(--border-color);
+}
+
+.derm-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: all 0.2s;
+}
+
+.derm-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-sm);
+}
+
+.derm-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.derm-card .derm-distance {
+    font-size: 0.75rem;
+    color: var(--primary-dark);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.derm-card .derm-address {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.derm-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.btn-derm-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-call {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+.btn-call:hover {
+    background: #fee2e2;
+}
+
+.btn-email {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.btn-email:hover {
+    background: #dbeafe;
+}
+
+.btn-consult {
+    grid-column: span 2;
+    background: var(--primary-dark);
+    color: white;
+    border: none;
+}
+.btn-consult:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(8, 127, 91, 0.2);
+}

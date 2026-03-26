@@ -11,6 +11,7 @@ Endpoints:
 
 import os
 import base64
+import requests
 from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 import torch
@@ -26,7 +27,14 @@ from utils.report_gen import generate_report
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 
+try:
+    from flask_cloudflared import run_with_cloudflared
+except ImportError:
+    run_with_cloudflared = None
+
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
+if run_with_cloudflared:
+    run_with_cloudflared(app)
 CORS(app)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "bmp", "webp"}
@@ -211,6 +219,87 @@ def report():
     except Exception as e:
         app.logger.exception("Error generating report")
         return jsonify({"error": f"Report generation failed: {str(e)}"}), 500
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# API: Chatbot with Fallback (Gemini -> NVIDIA NIM)
+# ──────────────────────────────────────────────────────────────────────────────
+NVIDIA_API_KEY = "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"
+GEMINI_API_KEY = "AIzaSyAubFZrNoCM72VAE-LcZJ_xMoOBYDqA8dk"
+
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    data = request.get_json(force=True)
+    user_message = data.get("message", "")
+    
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    # Fallback configuration
+    # 1. Try Gemini first (It's faster and has higher limits usually)
+    # 2. Try NVIDIA NIM (Kimi) as fallback
+    configs = [
+        {
+            "name": "Gemini",
+            "url": f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}",
+            "headers": {"Content-Type": "application/json"},
+            "payload": {
+                "contents": [{"parts": [{"text": user_message}]}]
+            }
+        },
+        {
+            "name": "NVIDIA NIM (Kimi)",
+            "url": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "headers": {
+                "Authorization": f"Bearer {NVIDIA_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            "payload": {
+                "model": "moonshotai/kimi-k2.5",
+                "messages": [{"role": "user", "content": user_message}],
+                "max_tokens": 1024,
+                "temperature": 0.7
+            }
+        }
+    ]
+
+    for api in configs:
+        app.logger.info(f"Attempting to chat with: {api['name']}")
+        try:
+            response = requests.post(
+                api['url'],
+                headers=api['headers'],
+                json=api['payload'],
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                resp_json = response.json()
+                bot_reply = ""
+                
+                # Parse depending on the provider format
+                if api["name"] == "Gemini":
+                    try:
+                        bot_reply = resp_json['candidates'][0]['content']['parts'][0]['text']
+                    except (KeyError, IndexError):
+                        bot_reply = "Sorry, I received an invalid response format from Gemini."
+                elif api["name"] == "NVIDIA NIM (Kimi)":
+                    try:
+                        bot_reply = resp_json['choices'][0]['message']['content']
+                    except (KeyError, IndexError):
+                        bot_reply = "Sorry, I received an invalid response format from Kimi."
+                
+                return jsonify({"reply": bot_reply, "provider": api["name"]})
+            else:
+                app.logger.warning(f"{api['name']} failed. Status: {response.status_code}. Error: {response.text}")
+                # Move to next API in the loop automatically
+                
+        except requests.exceptions.RequestException as e:
+            app.logger.error(f"Connection error with {api['name']}: {str(e)}")
+            # Move to next API in the loop automatically
+
+    # If all APIs fail
+    return jsonify({"error": "All AI providers failed. Please try again later."}), 500
 
 
 # ──────────────────────────────────────────────────────────────────────────────

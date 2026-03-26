@@ -167,7 +167,7 @@ def generate_report(
         "Medium": (
             "Moderate risk patterns were detected in the highlighted region. "
             "Some irregular pigmentation or texture may be present. A professional "
-            "dermatologist consultation within 2–4 weeks is recommended."
+            "dermatologist consultation within 2-4 weeks is recommended."
         ),
         "High": (
             "Significant risk indicators detected in the highlighted region. "
