@@ -13,7 +13,8 @@
     const errorBox       = document.getElementById('error-box');
     const errorMsg       = document.getElementById('error-msg');
 
-    let currentResult = null;
+    let currentResult   = null;
+    let currentInsights = null;  // AI enrichment result
 
     function showError(msg) {
         errorBox.classList.remove('hidden');
@@ -108,6 +109,71 @@
         document.getElementById('detail-time').textContent = `${duration}s`;
 
         if (window.loadDermatologists) window.loadDermatologists();
+
+        // Trigger AI enrichment in parallel
+        fetchAiInsights(data.risk_level, data.prediction, data.confidence);
+    }
+
+    // ── AI Insights Enrichment ─────────────────────────────────────────
+    async function fetchAiInsights(risk_level, prediction, confidence) {
+        const section = document.getElementById('ai-insights-section');
+        if (!section) return;
+
+        // Show skeleton
+        section.classList.remove('hidden');
+        section.innerHTML = `
+            <div class="ai-insights-header">
+                <span class="ai-badge">&#129302; AI Clinical Analysis</span>
+                <span class="ai-powered">Powered by Gemini</span>
+            </div>
+            <div class="ai-insights-skeleton">
+                <div class="skeleton-card"><div class="skeleton-line long"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-line long"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-line long"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+                <div class="skeleton-card"><div class="skeleton-line long"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+            </div>`;
+
+        try {
+            const resp = await fetch(`${API_BASE}/api/enrich`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ risk_level, prediction, confidence }),
+            });
+            const data = await resp.json();
+            currentInsights = data.insights;
+
+            if (currentInsights) {
+                // Store in currentResult so PDF download includes them
+                if (currentResult) currentResult.ai_insights = currentInsights;
+
+                const insightItems = [
+                    { icon: '&#128300;', title: 'Condition Description',  key: 'condition_description' },
+                    { icon: '&#9888;&#65039;',  title: 'Risk Explanation',        key: 'risk_explanation' },
+                    { icon: '&#128203;', title: 'Recommended Next Steps', key: 'next_steps' },
+                    { icon: '&#127807;', title: 'Lifestyle & Prevention',  key: 'lifestyle_advice' },
+                ];
+
+                const cards = insightItems.map(({ icon, title, key }) => `
+                    <div class="ai-insight-card">
+                        <div class="ai-insight-icon">${icon}</div>
+                        <div class="ai-insight-body">
+                            <div class="ai-insight-title">${title}</div>
+                            <div class="ai-insight-text">${currentInsights[key] || 'N/A'}</div>
+                        </div>
+                    </div>`).join('');
+
+                section.innerHTML = `
+                    <div class="ai-insights-header">
+                        <span class="ai-badge">&#129302; AI Clinical Analysis</span>
+                        <span class="ai-powered">Powered by Gemini</span>
+                    </div>
+                    <div class="ai-insights-grid">${cards}</div>`;
+            } else {
+                section.innerHTML = `<div class="ai-unavailable">&#129302; AI clinical insights unavailable. Core analysis above is still accurate.</div>`;
+            }
+        } catch {
+            section.innerHTML = `<div class="ai-unavailable">&#129302; AI clinical insights unavailable. Core analysis above is still accurate.</div>`;
+        }
     }
 
     // ── Start Analysis ────────────────────────────────────────────────────────
@@ -131,6 +197,11 @@
 
             currentResult = data;
             renderResults(data);
+
+            // Reset AI insights for new analysis
+            currentInsights = null;
+            const insightSection = document.getElementById('ai-insights-section');
+            if (insightSection) insightSection.classList.add('hidden');
 
             // Start polling for heatmap
             if (data.heatmap_job_id) pollHeatmap(data.heatmap_job_id);
@@ -156,10 +227,14 @@
         spinner.classList.remove('hidden');
 
         try {
+            const payload = Object.assign({}, currentResult);
+            // Include AI insights if they arrived
+            if (currentInsights) payload.ai_insights = currentInsights;
+
             const resp = await fetch(`${API_BASE}/api/report`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(currentResult),
+                body: JSON.stringify(payload),
             });
 
             if (!resp.ok) throw new Error('PDF generation failed');
@@ -187,6 +262,9 @@
         resultsSection.classList.add('hidden');
         uploadSection.classList.remove('hidden');
         document.getElementById('conf-fill').style.width = '0%';
+        currentInsights = null;
+        const insightSection = document.getElementById('ai-insights-section');
+        if (insightSection) insightSection.classList.add('hidden');
         if (window.resetUpload) window.resetUpload();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });

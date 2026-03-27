@@ -1151,4 +1151,140 @@ body {
     font-size: 0.85rem;
     font-weight: 500;
     margin-top: 12px;
-}
+}
+
+/* ── AI INSIGHTS SECTION ─────────────────────────────────── */
+.ai-insights-section {
+    background: linear-gradient(135deg, #0f1428 0%, #1a2040 100%);
+    border: 1px solid rgba(100, 220, 255, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.ai-insights-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(100, 220, 255, 0.15);
+}
+
+.ai-badge {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #64dcff;
+    letter-spacing: 0.02em;
+}
+
+.ai-powered {
+    font-size: 0.75rem;
+    color: rgba(150, 160, 200, 0.7);
+    background: rgba(100, 220, 255, 0.08);
+    border: 1px solid rgba(100, 220, 255, 0.15);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+/* Grid for 4 insight cards: 2x2 on desktop */
+.ai-insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .ai-insights-grid { grid-template-columns: 1fr; }
+}
+
+.ai-insight-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(100, 220, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.ai-insight-card:hover {
+    background: rgba(100, 220, 255, 0.06);
+    border-color: rgba(100, 220, 255, 0.25);
+}
+
+.ai-insight-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+    padding-top: 2px;
+}
+
+.ai-insight-body { flex: 1; }
+
+.ai-insight-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64dcff;
+    margin-bottom: 6px;
+}
+
+.ai-insight-text {
+    font-size: 0.87rem;
+    line-height: 1.6;
+    color: #c8d4e8;
+}
+
+/* Skeleton shimmer */
+.ai-insights-skeleton {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .ai-insights-skeleton { grid-template-columns: 1fr; }
+}
+
+.skeleton-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(100, 220, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skeleton-line {
+    height: 10px;
+    border-radius: 4px;
+    background: linear-gradient(90deg,
+        rgba(100,220,255,0.05) 25%,
+        rgba(100,220,255,0.12) 50%,
+        rgba(100,220,255,0.05) 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.4s infinite linear;
+    width: 100%;
+}
+.skeleton-line.long  { width: 75%; }
+.skeleton-line.short { width: 45%; }
+
+/* Unavailable fallback */
+.ai-unavailable {
+    text-align: center;
+    color: rgba(150, 160, 200, 0.6);
+    font-size: 0.88rem;
+    padding: 16px;
+}
+

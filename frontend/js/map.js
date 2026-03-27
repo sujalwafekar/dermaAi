@@ -90,8 +90,8 @@ window.loadDermatologists = async function () {
     };
 
     let docs = [];
-    let userLat = 12.9716;
-    let userLng = 77.5946;
+    let userLat = 19.0760;  // Mumbai (fallback when geolocation is blocked)
+    let userLng = 72.8777;
     let usingRealLocation = false;
 
     try {
