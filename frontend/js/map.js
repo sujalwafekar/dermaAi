@@ -3,7 +3,7 @@
  * Finds nearby doctors using HTML5 Geolocation and OpenStreetMap Overpass API.
  */
 
-const API_BASE = window.API_BASE || 'https://sujal1207-dermaai.hf.space';
+const API_BASE = window.API_BASE || 'https://sujal1207-dermaai54.hf.space';
 
 let leafletMap = null;
 let userMarker = null;
