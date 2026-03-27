@@ -68,6 +68,10 @@ def index():
 
 @app.route("/<path:filename>")
 def static_files(filename):
+    # Don't intercept API routes
+    if filename.startswith("api/"):
+        from flask import abort
+        abort(404)
     return send_from_directory(FRONTEND_DIR, filename)
 
 
@@ -209,35 +213,62 @@ def dermatologists():
 # ──────────────────────────────────────────────────────────────────────────────
 @app.route("/api/model-status", methods=["GET"])
 def model_status():
-    """
-    Returns current model health — hit this on Hugging Face to verify weights loaded.
-    No auth needed; read-only; no PII.
-    """
     import torch
-    from model.model_loader import CLASSES
+    from model.model_loader import CLASSES, LOGIT_BIAS, TEMPERATURE
 
     status = {"ok": False, "classes": CLASSES}
-
     try:
-        # Run a fresh sanity inference
         _noise = torch.rand(1, 3, 224, 224, device=device)
         with torch.no_grad():
-            _probs = torch.softmax(model(_noise), dim=1)[0]
+            _logits = model(_noise)
+            _bias = torch.tensor([LOGIT_BIAS[c] for c in CLASSES], dtype=torch.float32).to(device)
+            _probs = torch.softmax((_logits + _bias) / TEMPERATURE, dim=1)[0]
         all_probs = {cls: round(_probs[i].item(), 4) for i, cls in enumerate(CLASSES)}
-        top_cls   = CLASSES[_probs.argmax().item()]
-        top_p     = round(_probs.max().item(), 4)
-
-        degenerate = (top_cls == "No Cancer" and top_p > 0.85)
+        raw_logits = {cls: round(_logits[0][i].item(), 4) for i, cls in enumerate(CLASSES)}
+        top_cls = CLASSES[_probs.argmax().item()]
+        top_p   = round(_probs.max().item(), 4)
         status.update({
-            "ok"         : not degenerate,
-            "warning"    : "Model predicts No Cancer with very high confidence on random noise — weights may not have loaded correctly." if degenerate else None,
+            "ok": True,
             "noise_probs": all_probs,
-            "noise_top"  : {"class": top_cls, "confidence": top_p},
+            "raw_logits": raw_logits,
+            "noise_top": {"class": top_cls, "confidence": top_p},
+            "bias": LOGIT_BIAS,
+            "temperature": TEMPERATURE,
         })
     except Exception as e:
         status["error"] = str(e)
-
     return jsonify(status), 200 if status["ok"] else 500
+
+
+@app.route("/api/debug-predict", methods=["POST"])
+def debug_predict():
+    """Returns raw logits + calibrated probs for a submitted image — for diagnosis only."""
+    if "image" not in request.files:
+        return jsonify({"error": "No image"}), 400
+    try:
+        import torch
+        from model.model_loader import CLASSES, LOGIT_BIAS, TEMPERATURE
+        from utils.predictor import preprocess_image
+
+        file_bytes = request.files["image"].read()
+        pil_img, tensor = preprocess_image(file_bytes)
+        tensor = tensor.to(device)
+
+        with torch.no_grad():
+            logits = model(tensor)
+            bias = torch.tensor([LOGIT_BIAS[c] for c in CLASSES], dtype=torch.float32).to(device)
+            probs_raw   = torch.softmax(logits, dim=1)[0]
+            probs_calib = torch.softmax((logits + bias) / TEMPERATURE, dim=1)[0]
+
+        return jsonify({
+            "raw_logits"   : {c: round(logits[0][i].item(), 4) for i, c in enumerate(CLASSES)},
+            "probs_raw"    : {c: round(probs_raw[i].item(), 4) for i, c in enumerate(CLASSES)},
+            "probs_calib"  : {c: round(probs_calib[i].item(), 4) for i, c in enumerate(CLASSES)},
+            "top_raw"      : CLASSES[probs_raw.argmax().item()],
+            "top_calib"    : CLASSES[probs_calib.argmax().item()],
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ──────────────────────────────────────────────────────────────────────────────

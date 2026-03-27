@@ -14,7 +14,7 @@ CLASSES = [
     'Squamous Cell Carcinoma',
 ]
 
-CONF_THRESHOLD = 0.35
+CONF_THRESHOLD = 0.0   # Always return a prediction — never "Uncertain"
 
 # Skin-cancer dataset normalization stats (matches training pipeline)
 MEAN = [0.7216, 0.5765, 0.5725]
