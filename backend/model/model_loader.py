@@ -107,48 +107,91 @@ def load_model(model_path: str = None) -> nn.Module:
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    checkpoint = torch.load(model_path, map_location=device)
+    checkpoint = torch.load(model_path, map_location=device, weights_only=False)
 
-    # Determine if it's a full model object or a state_dict
+    # ── Extract state dict from checkpoint ────────────────────────────────────
+    # Handle common PyTorch checkpoint formats
     if hasattr(checkpoint, 'state_dict'):
+        # Full model object saved directly
         state_dict = checkpoint.state_dict()
-    elif isinstance(checkpoint, dict) and 'model_state' in checkpoint:
-        state_dict = checkpoint['model_state']
+    elif isinstance(checkpoint, dict):
+        # Prioritise training checkpoint keys (most-to-least common)
+        for key in ('model_state', 'model_state_dict', 'state_dict', 'model'):
+            if key in checkpoint:
+                state_dict = checkpoint[key]
+                print(f"[Model Load] Extracted state dict from checkpoint['{key}']")
+                break
+        else:
+            # Assume the dict IS the state dict (plain torch.save(model.state_dict()))
+            state_dict = checkpoint
+            print("[Model Load] Treating checkpoint as raw state dict")
     else:
         state_dict = checkpoint
 
     model = build_model(num_classes=len(CLASSES))
-
-    # Auto-fix common prefix mismatches (e.g. from DataParallel or nested models)
     expected_keys = set(model.state_dict().keys())
-    saved_keys = set(state_dict.keys())
 
-    # Try to find a common prefix in the saved keys that we need to strip
+    # ── Strip key prefixes ────────────────────────────────────────────────────
+    # Training often wraps the DenseNet in a class with a 'backbone' attribute,
+    # producing keys like 'backbone.features.*' instead of 'features.*'.
+    # Strip all known wrapper prefixes UNCONDITIONALLY.
+    STRIP_PREFIXES = ('module.backbone.', 'backbone.', 'module.model.', 'module.',
+                      'model.', 'densenet.', 'net.', 'encoder.')
+
     new_state_dict = {}
     for k, v in state_dict.items():
         new_k = k
-        # Strip DataParallel 'module.' prefix
-        new_k = new_k.replace('module.', '')
-        # Strip common training-wrapper prefixes
-        for prefix in ('backbone.', 'model.', 'densenet.', 'net.', 'encoder.'):
-            if new_k.startswith(prefix) and new_k not in expected_keys:
+        for prefix in STRIP_PREFIXES:
+            if new_k.startswith(prefix):
                 new_k = new_k[len(prefix):]
                 break
         new_state_dict[new_k] = v
 
     incompatible = model.load_state_dict(new_state_dict, strict=False)
-    
-    # Let's print the mismatch so we immediately see it in console logs without crashing
-    if incompatible.missing_keys or incompatible.unexpected_keys:
-        print("Model state_dict mismatch detected! (strict=False)")
-        if incompatible.missing_keys:
-            print(f"Missing (first 5): {incompatible.missing_keys[:5]}")
-        if incompatible.unexpected_keys:
-            print(f"Unexpected (first 5): {incompatible.unexpected_keys[:5]}")
 
+    n_missing    = len(incompatible.missing_keys)
+    n_unexpected = len(incompatible.unexpected_keys)
+    n_total      = len(model.state_dict())
+    missing_pct  = n_missing / n_total
+
+    print(f"[Model Load] resolved path         : {model_path}")
+    print(f"[Model Load] total expected keys   : {n_total}")
+    print(f"[Model Load] missing keys          : {n_missing}  ({missing_pct:.1%})")
+    print(f"[Model Load] unexpected keys       : {n_unexpected}")
+
+    if n_missing:
+        print(f"[Model Load] missing (first 5)     : {incompatible.missing_keys[:5]}")
+    if n_unexpected:
+        print(f"[Model Load] unexpected (first 5)  : {incompatible.unexpected_keys[:5]}")
+
+    # If more than 5% of weights are missing the model is effectively untrained.
+    if missing_pct > 0.05:
+        raise RuntimeError(
+            f"Model weight loading failed: {n_missing}/{n_total} keys missing ({missing_pct:.1%}). "
+            "Prefix stripping did not resolve key mismatches. "
+            f"First missing: '{incompatible.missing_keys[0] if incompatible.missing_keys else 'N/A'}'. "
+            "Ensure the .pth was exported from an architecture matching build_model()."
+        )
+
+    # ── Sanity check ─────────────────────────────────────────────────────────
+    # Run inference on random noise. A properly loaded model will NOT
+    # collapse to a single class with extreme confidence on random input.
+    import numpy as np
     model.to(device)
     model.eval()
+    _noise = torch.rand(1, 3, 224, 224, device=device)
+    with torch.no_grad():
+        _probs = torch.softmax(model(_noise), dim=1)[0]
+    _top_cls = CLASSES[_probs.argmax().item()]
+    _top_p   = _probs.max().item()
+    print(f"[Model Load] sanity check (noise)  : top={_top_cls!r} p={_top_p:.3f}")
+    if _top_cls == 'No Cancer' and _top_p > 0.85:
+        raise RuntimeError(
+            "Sanity check FAILED: model predicts 'No Cancer' with "
+            f"{_top_p:.1%} confidence on random noise — weights did not load correctly."
+        )
 
+    print(f"[Model Load] ✅ Model loaded and verified: {model_path}")
     return model
 
 # ── Transform ─────────────────────────────────────────────────────────────────

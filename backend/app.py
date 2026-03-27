@@ -157,43 +157,43 @@ def analyze():
 # ──────────────────────────────────────────────────────────────────────────────
 MOCK_DERMATOLOGISTS = [
     {
-        "name": "Dr. Priya Nair — Skin & Laser Clinic",
-        "address": "12, MG Road, Bangalore, KA 560001",
-        "phone": "+91 98765 43210",
-        "rating": 4.8, "distance": "0.8 km",
-        "lat": 12.9756, "lng": 77.6011,
+        "name": "Dr. Niteen Dhepe — Skin & Laser Clinic",
+        "address": "301, Arenja Corner, Sector 17, Vashi, Navi Mumbai",
+        "phone": "+91 22 2789 0000",
+        "rating": 4.8, "distance": "1.2 km",
+        "lat": 19.0748, "lng": 72.9980,
         "open": True, "specialty": "Dermatology & Cosmetology",
     },
     {
-        "name": "Apollo Skin Care Centre",
-        "address": "Apollo Hospital, Koramangala, Bangalore",
-        "phone": "+91 80 2658 0000",
-        "rating": 4.6, "distance": "1.4 km",
-        "lat": 12.9352, "lng": 77.6245,
+        "name": "Kokilaben Dhirubhai Ambani Hospital — Dermatology",
+        "address": "Rao Saheb, Achutrao Patwardhan Marg, Andheri West, Mumbai",
+        "phone": "+91 22 3066 1000",
+        "rating": 4.7, "distance": "2.1 km",
+        "lat": 19.1390, "lng": 72.8284,
         "open": True, "specialty": "Dermato-oncology",
     },
     {
-        "name": "Dr. Arun Sharma — Dermatology & Surgery",
-        "address": "45, Richmond Rd, Bangalore, KA 560025",
-        "phone": "+91 94830 21045",
-        "rating": 4.5, "distance": "2.1 km",
-        "lat": 12.9612, "lng": 77.5955,
-        "open": False, "specialty": "Skin Cancer & Biopsy",
+        "name": "Lilavati Hospital — Skin Dept.",
+        "address": "A-791, Bandra Reclamation, Bandra West, Mumbai 400050",
+        "phone": "+91 22 2675 1000",
+        "rating": 4.6, "distance": "3.0 km",
+        "lat": 19.0544, "lng": 72.8310,
+        "open": True, "specialty": "Skin Cancer & Biopsy",
     },
     {
-        "name": "Manipal Dermatology Dept.",
-        "address": "Manipal Hospital, Old Airport Rd, Bangalore",
-        "phone": "+91 80 2502 4444",
-        "rating": 4.7, "distance": "3.5 km",
-        "lat": 12.9592, "lng": 77.6476,
+        "name": "Breach Candy Hospital — Dermatology",
+        "address": "60-A, Bhulabhai Desai Rd, Breach Candy, Mumbai 400026",
+        "phone": "+91 22 2367 1888",
+        "rating": 4.5, "distance": "3.8 km",
+        "lat": 18.9677, "lng": 72.8076,
         "open": True, "specialty": "Clinical Dermatology",
     },
     {
-        "name": "SkinEssentials by Dr. Mehta",
-        "address": "23, Brigade Rd, Bangalore, KA 560001",
-        "phone": "+91 98400 77712",
-        "rating": 4.4, "distance": "4.2 km",
-        "lat": 12.9732, "lng": 77.6073,
+        "name": "Hinduja Hospital — Skin & Cosmetology",
+        "address": "Veer Savarkar Marg, Mahim West, Mumbai 400016",
+        "phone": "+91 22 2445 2222",
+        "rating": 4.6, "distance": "4.5 km",
+        "lat": 19.0454, "lng": 72.8395,
         "open": True, "specialty": "Skin Screening & Mole Mapping",
     },
 ]
@@ -205,12 +205,47 @@ def dermatologists():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# API: Model status / debug (useful for verifying HF deployment)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route("/api/model-status", methods=["GET"])
+def model_status():
+    """
+    Returns current model health — hit this on Hugging Face to verify weights loaded.
+    No auth needed; read-only; no PII.
+    """
+    import torch
+    from model.model_loader import CLASSES
+
+    status = {"ok": False, "classes": CLASSES}
+
+    try:
+        # Run a fresh sanity inference
+        _noise = torch.rand(1, 3, 224, 224, device=device)
+        with torch.no_grad():
+            _probs = torch.softmax(model(_noise), dim=1)[0]
+        all_probs = {cls: round(_probs[i].item(), 4) for i, cls in enumerate(CLASSES)}
+        top_cls   = CLASSES[_probs.argmax().item()]
+        top_p     = round(_probs.max().item(), 4)
+
+        degenerate = (top_cls == "No Cancer" and top_p > 0.85)
+        status.update({
+            "ok"         : not degenerate,
+            "warning"    : "Model predicts No Cancer with very high confidence on random noise — weights may not have loaded correctly." if degenerate else None,
+            "noise_probs": all_probs,
+            "noise_top"  : {"class": top_cls, "confidence": top_p},
+        })
+    except Exception as e:
+        status["error"] = str(e)
+
+    return jsonify(status), 200 if status["ok"] else 500
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # API: Generate PDF report
 # ──────────────────────────────────────────────────────────────────────────────
 @app.route("/api/report", methods=["POST"])
 def report():
     data = request.get_json(force=True)
-    # heatmap_b64 may be None if user downloads before heatmap arrives
     heatmap_b64  = data.get("heatmap_b64") or ""
     original_b64 = data.get("original_b64", "")
 
@@ -220,10 +255,14 @@ def report():
 
     try:
         pdf_bytes = generate_report(
-            risk_level=data["risk_level"],
-            confidence=float(data["confidence"]),
-            heatmap_b64=heatmap_b64,
-            original_b64=original_b64,
+            risk_level   = data["risk_level"],
+            confidence   = float(data["confidence"]),
+            heatmap_b64  = heatmap_b64,
+            original_b64 = original_b64,
+            ai_insights  = data.get("ai_insights"),       # NEW
+            prediction   = data.get("prediction", ""),    # NEW
+            urgency      = data.get("urgency", ""),       # NEW
+            advice       = data.get("advice", ""),        # NEW
         )
 
         response = make_response(pdf_bytes)
@@ -237,11 +276,55 @@ def report():
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# API: Chatbot  (Gemini → NVIDIA NIM → Ollama fallback)
+# API: AI Insights Enrichment  (Gemini structured clinical analysis)
 # ──────────────────────────────────────────────────────────────────────────────
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "")
+
+
+@app.route("/api/enrich", methods=["POST"])
+def enrich():
+    """Send model results to Gemini to get structured clinical insights."""
+    data       = request.get_json(force=True)
+    risk_level = data.get("risk_level", "Unknown")
+    prediction = data.get("prediction", "Unknown")
+    confidence = float(data.get("confidence", 0)) * 100
+
+    prompt = f"""You are a clinical dermatology assistant AI. A patient's skin lesion image was analyzed by a deep learning model.
+
+Model Results:
+- Detected condition: {prediction}
+- Risk level: {risk_level}
+- Model confidence: {confidence:.1f}%
+
+Provide a structured clinical response in JSON format with EXACTLY these 4 keys:
+1. "condition_description": A 2-3 sentence plain-English description of what {prediction} is, its characteristics, and how common it is.
+2. "risk_explanation": A 2-3 sentence explanation of what a {risk_level} risk level means clinically for this specific condition.
+3. "next_steps": 3-4 specific, actionable clinical next steps the patient should take, as a single paragraph.
+4. "lifestyle_advice": 2-3 specific lifestyle and prevention tips relevant to this condition (sun protection, self-exam frequency, etc.).
+
+Return ONLY valid JSON — no markdown, no extra text, just the JSON object."""
+
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        resp = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=25)
+        if resp.status_code == 200:
+            raw = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+            # Strip markdown code fences if present
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            import json as _json
+            insights = _json.loads(raw)
+            return jsonify({"insights": insights})
+        app.logger.warning(f"Gemini enrich failed: {resp.status_code} {resp.text[:200]}")
+    except Exception as e:
+        app.logger.error(f"Enrich error: {e}")
+
+    # Fallback — return None so frontend shows static notes
+    return jsonify({"insights": None}), 200
 
 
 @app.route("/api/chat", methods=["POST"])
