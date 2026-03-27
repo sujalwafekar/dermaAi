@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 document.addEventListener("DOMContentLoaded", () => {
+  const API_BASE = window.API_BASE || 'https://sujal1207-dermaai.hf.space';
   const chatToggle = document.getElementById("chat-toggle");
   const chatClose = document.getElementById("chat-close");
   const chatWindow = document.getElementById("chat-window");
@@ -66,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBody.scrollTop = chatBody.scrollHeight;
 
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text })

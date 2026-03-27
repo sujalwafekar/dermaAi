@@ -196,12 +196,8 @@
             if (!resp.ok || data.error) throw new Error(data.error || 'Server error occurred');
 
             currentResult = data;
-            renderResults(data);
-
-            // Reset AI insights for new analysis
             currentInsights = null;
-            const insightSection = document.getElementById('ai-insights-section');
-            if (insightSection) insightSection.classList.add('hidden');
+            renderResults(data);
 
             // Start polling for heatmap
             if (data.heatmap_job_id) pollHeatmap(data.heatmap_job_id);

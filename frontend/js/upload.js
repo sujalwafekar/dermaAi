@@ -42,11 +42,15 @@
   function validateFile(file) {
     const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/bmp'];
     if (!allowed.includes(file.type)) {
-      showError('Unsupported file type. Please use PNG, JPG, WEBP, or BMP.');
+      const errBox = document.getElementById('error-box');
+      const errMsg = document.getElementById('error-msg');
+      if (errBox && errMsg) { errMsg.textContent = 'Unsupported file type. Please use PNG, JPG, WEBP, or BMP.'; errBox.classList.remove('hidden'); }
       return false;
     }
     if (file.size > 10 * 1024 * 1024) {
-      showError('File is too large. Maximum size is 10 MB.');
+      const errBox = document.getElementById('error-box');
+      const errMsg = document.getElementById('error-msg');
+      if (errBox && errMsg) { errMsg.textContent = 'File is too large. Maximum size is 10 MB.'; errBox.classList.remove('hidden'); }
       return false;
     }
     return true;
@@ -94,5 +98,6 @@
 
   /* Export for analyze.js */
   window.getSelectedFile = () => selectedFile;
+  window.resetUpload = resetUpload;
 
 })();
