@@ -20,27 +20,17 @@ CONF_THRESHOLD = 0.0   # Always return a prediction — never "Uncertain"
 MEAN = [0.7216, 0.5765, 0.5725]
 STD  = [0.1404, 0.1501, 0.1669]
 
-# ── Prior bias correction ──────────────────────────────────────────────────────
-# The model was trained on an imbalanced dataset where 'No Cancer' is the
-# majority class. These logit offsets subtract the learned class prior so that
-# softmax probabilities reflect actual lesion likelihood rather than dataset
-# frequency.
-#
-# Calibrated from observed raw logit distributions:
-#   'No Cancer' logit averages +1.5 higher than cancer classes on real skin.
-#   We apply a moderate penalty to No Cancer and a mild boost to cancer classes.
-#   Temperature=1.5 sharpens the distribution so the top class wins decisively.
+# ── No bias correction — use raw model output ─────────────────────────────────
+# The model's raw predictions are used directly. Bias correction requires
+# calibration on real dermoscopic images via /api/debug-predict.
 LOGIT_BIAS = {
-    'No Cancer'              : -1.5,
-    'Melanoma'               :  0.6,
-    'Basal Cell Carcinoma'   :  0.4,
-    'Actinic Keratosis'      :  0.2,
-    'Squamous Cell Carcinoma':  0.4,
+    'No Cancer'              :  0.0,
+    'Melanoma'               :  0.0,
+    'Basal Cell Carcinoma'   :  0.0,
+    'Actinic Keratosis'      :  0.0,
+    'Squamous Cell Carcinoma':  0.0,
 }
-
-# Temperature < 1.0 sharpens softmax (more decisive), > 1.0 flattens it.
-# We use 0.7 to make the winning class more confident after bias correction.
-TEMPERATURE = 0.7
+TEMPERATURE = 1.0
 
 PRECAUTIONS = {
     'No Cancer': {
