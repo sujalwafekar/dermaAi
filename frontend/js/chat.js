@@ -3,21 +3,37 @@
 // ═══════════════════════════════════════════════════════════
 
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = window.API_BASE || 'https://sujal1207-ai321.hf.space';
+  const API_BASE = window.API_BASE || 'http://localhost:5000';
   const chatToggle = document.getElementById("chat-toggle");
   const chatClose = document.getElementById("chat-close");
   const chatWindow = document.getElementById("chat-window");
   const chatBody = document.getElementById("chat-body");
   const chatInput = document.getElementById("chat-input");
   const chatSend = document.getElementById("chat-send");
-  
+
   let isChatOpen = false;
 
-  // Toggle chat
+  // Show unread badge after 3s
+  setTimeout(() => {
+    if (!isChatOpen) {
+      const badge = document.createElement('span');
+      badge.className = 'chat-badge';
+      badge.id = 'chat-badge';
+      badge.textContent = '1';
+      chatToggle.appendChild(badge);
+    }
+  }, 3000);
+
+  function removeBadge() {
+    const b = document.getElementById('chat-badge');
+    if (b) b.remove();
+  }
+
   chatToggle.addEventListener("click", () => {
     isChatOpen = !isChatOpen;
     chatWindow.classList.toggle("open", isChatOpen);
     if (isChatOpen) {
+      removeBadge();
       chatInput.focus();
     }
   });
