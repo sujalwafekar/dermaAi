@@ -3,7 +3,7 @@
  */
 (() => {
 
-    const API_BASE = 'https://sujal1207-ai321.hf.space';
+    const API_BASE = window.API_BASE || 'http://localhost:5000';
 
     const uploadSection  = document.getElementById('upload-section');
     const resultsSection = document.getElementById('results-section');
@@ -100,6 +100,12 @@
         uploadSection.classList.add('hidden');
         resultsSection.classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Show sticky download bar
+        setTimeout(() => {
+            const bar = document.getElementById('sticky-report-bar');
+            if (bar) bar.classList.add('visible');
+        }, 600);
 
         requestAnimationFrame(() => {
             document.getElementById('conf-fill').style.width = `${confNum}%`;
@@ -261,8 +267,18 @@
         currentInsights = null;
         const insightSection = document.getElementById('ai-insights-section');
         if (insightSection) insightSection.classList.add('hidden');
+        const bar = document.getElementById('sticky-report-bar');
+        if (bar) bar.classList.remove('visible');
         if (window.resetUpload) window.resetUpload();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    // ── Sticky download button ────────────────────────────────────────────────
+    const stickyBtn = document.getElementById('sticky-download-btn');
+    if (stickyBtn) {
+        stickyBtn.addEventListener('click', () => {
+            document.getElementById('download-btn').click();
+        });
+    }
 
 })();

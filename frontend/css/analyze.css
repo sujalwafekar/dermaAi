@@ -544,6 +544,19 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 32px;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.result-header-action {
+    flex-shrink: 0;
+}
+
+.result-header-action .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 .result-header-text h1 {
@@ -1287,4 +1300,45 @@ body {
     font-size: 0.88rem;
     padding: 16px;
 }
-
+
+
+/* ── Sticky Report Bar ───────────────────────────────────── */
+.sticky-report-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sticky-report-bar.visible {
+    transform: translateY(0);
+}
+
+.sticky-report-bar span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+    .sticky-report-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 16px;
+    }
+    .sticky-report-bar .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+}
