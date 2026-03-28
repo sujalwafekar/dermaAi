@@ -34,7 +34,11 @@ load_dotenv()
 # App setup
 # ──────────────────────────────────────────────────────────────────────────────
 BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+# Serve the new React build if available, otherwise fall back to legacy frontend
+_react_dir  = os.path.join(BASE_DIR, "..", "frontend-react")
+_legacy_dir = os.path.join(BASE_DIR, "..", "frontend")
+FRONTEND_DIR = _react_dir if os.path.isdir(_react_dir) else _legacy_dir
+print(f"[Frontend] Serving from: {FRONTEND_DIR}")
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
 CORS(app)
