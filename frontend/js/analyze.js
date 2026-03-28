@@ -3,7 +3,7 @@
  */
 (() => {
 
-    const API_BASE = 'https://sujal1207-dermaai54.hf.space';
+    const API_BASE = 'https://sujal1207-ai321.hf.space';
 
     const uploadSection  = document.getElementById('upload-section');
     const resultsSection = document.getElementById('results-section');

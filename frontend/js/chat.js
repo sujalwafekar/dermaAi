@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════
 
 document.addEventListener("DOMContentLoaded", () => {
-  const API_BASE = window.API_BASE || 'https://sujal1207-dermaai54.hf.space';
+  const API_BASE = window.API_BASE || 'https://sujal1207-ai321.hf.space';
   const chatToggle = document.getElementById("chat-toggle");
   const chatClose = document.getElementById("chat-close");
   const chatWindow = document.getElementById("chat-window");
