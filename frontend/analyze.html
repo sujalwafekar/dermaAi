@@ -10,6 +10,7 @@
         rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/analyze.css" />
+    <link rel="stylesheet" href="css/index.css" />
 </head>
 
 <body>
@@ -366,10 +367,42 @@
         </div>
     </footer>
 
+    <!-- ── CHATBOT WIDGET ────────────────────────────────────────── -->
+    <div class="chat-widget" id="chat-widget">
+        <button class="chat-toggle glass" id="chat-toggle" aria-label="Toggle Chat">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </button>
+        <div class="chat-window shadow-lg glass" id="chat-window">
+            <div class="chat-header">
+                <div class="chat-header-title">
+                    <span>🧬</span> DermaAI Assistant
+                </div>
+                <button class="chat-close" id="chat-close">&times;</button>
+            </div>
+            <div class="chat-body" id="chat-body">
+                <div class="chat-message bot">
+                    <div class="msg-bubble">Hi! I'm your AI skin assistant. Ask me anything about skin conditions, your results, or next steps.</div>
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask about your results..." autocomplete="off" />
+                <button id="chat-send" aria-label="Send">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/upload.js"></script>
     <script src="js/analyze.js"></script>
     <script src="js/map.js"></script>
+    <script src="js/chat.js"></script>
 </body>
 
 </html>
