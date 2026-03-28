@@ -1,13 +1,9 @@
 FROM python:3.11-slim
 
-# Install system dependencies + Node.js for React build
+# Install system dependencies (OpenCV requires libgl1)
 RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
-    git \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up a non-root user for Hugging Face Spaces compatibility
@@ -18,7 +14,7 @@ ENV HOME=/home/user \
 
 WORKDIR $HOME/app
 
-# Copy and install Python dependencies first (layer cache)
+# Copy requirement files first for layer caching
 COPY --chown=user:user backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r backend/requirements.txt gunicorn
@@ -26,11 +22,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy all project files
 COPY --chown=user:user . .
 
-# Build the React frontend
-WORKDIR $HOME/app/Dermiyaaiii
-RUN npm install --legacy-peer-deps && npm run build
-
-# Set working directory to backend
 WORKDIR $HOME/app/backend
 
 ENV PORT=7860
